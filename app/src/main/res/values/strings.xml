@@ -1,15 +1,21 @@
 <resources>
-    <string name="app_name">Trivial Trivia</string>
+    <string name="app_name">Bud WISE</string>
     <string name="start_game">Start the game</string>
     <string name="statistics">Statistics</string>
     <string name="instructions">Instructions</string>
     <string name="acknowledgements">Acknowledgements</string>
+    <string name="socialize">Socialize</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="logout">Logout</string>
 
     <!--welcome page subtitles-->
-    <string name="start_subtitle">200 seconds of pain!</string>
-    <string name="statistics_subtitle">They\'re already calculated</string>
+    <string name="start_subtitle">It just takes 200 seconds</string>
+    <string name="statistics_subtitle">Let\'s see how you performed</string>
     <string name="instructions_subtitle">Pretty simple, I promise</string>
     <string name="acknowledgements_subtitle">Question and image sources</string>
+    <string name="socialize_subtitle">Let\'s discuss about it</string>
+    <string name="logout_subtitle">GoodBye</string>
 
     <string name="no_stats">There are no statistics. Please complete a quiz first.</string>
 
@@ -27,6 +33,7 @@
     <string name="question">Question: </string>
     <string name="you_selected">You selected: </string>
     <string name="correct_answer">Correct Answer: </string>
+    <string name="rationale">Rationale: </string>
 
     <!--post quiz statistics-->
     <string name="average_time_right_answers">Average time taken on right answers</string>
@@ -80,13 +87,97 @@
     <string name="no_choice">(Answer not attempted)</string>
 
     <string-array name="category_names">
-        <item>General</item>
-        <item>Science</item>
-        <item>World</item>
-        <item>History</item>
-        <item>Entertainment</item>
-        <item>Sports</item>
+        <item>Academy of Finance</item>
+        <item>Business Class</item>
+        <item>Finance planing</item>
+        <item>Personal Finance</item>
     </string-array>
 
+    <!--Select Difficulty Level-->
+    <string name="select_topic">Select A Topic</string>
+    <string name="select_difficulty_level">Select Difficulty Level</string>
+
+    <string name="submit_terrain_button">Let\'s go</string>
+    <string name="set_difficulty_level">Set The Terrain</string>
+
+    <string-array name="topics">
+        <item>All</item>
+        <item>Academy of Finance</item>
+        <item>Personal Finance</item>
+        <item>Finance planing</item>
+        <item>Business Class</item>
+    </string-array>
+
+    <string-array name="difficulty_levels">
+        <item>Easy</item>
+        <item>Medium</item>
+        <item>Difficult</item>
+    </string-array>
+
+    <string name="difficulty_level_prompt">Select Difficulty Level</string>
+    <string name="topic_prompt">Select Topic</string>
+
+    <!--Login-->
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login_button">Login</string>
+    <string name="register_button">Register</string>
+
+    <!--Register-->
+    <string name="reg_username">Username</string>
+    <string name="reg_password">Password</string>
+    <string name="reg_confirm_password">Confirm Password</string>
+    <string name="reg_studentID">Student ID</string>
+    <string name="reg_firstName">First Name</string>
+    <string name="reg_MiddleInitial">Middle Initial</string>
+    <string name="reg_lastName">Last Name</string>
+    <string name="reg_dateOfBirth">Date of Birth</string>
+    <string name="reg_gender">Gender</string>
+    <string name="reg_gradeLevel">Grade Level</string>
+    <string name="reg_course">Course</string>
+    <string name="reg_continue">Continue</string>
+    <string name="reg_invalid">Invalid fields</string>
+    <string name="reg_passwordNotMatched">Passwords don\'t match</string>
+
+    <!--Gender-->
+    <string-array name="gender">
+        <item></item>
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
+    <string name="reg_gender_prompt">Select Gender</string>
+
+    <!--Course-->
+    <string-array name="courses">
+        <item></item>
+        <item>Economics</item>
+        <item>Personal Finance</item>
+        <item>Business Class</item>
+        <item>Consumer Science</item>
+        <item>Mathematics</item>
+        <item>Financial Planning</item>
+        <item>Academy of Finance</item>
+        <item>Entrepreneurship</item>
+        <item>Principles of Business</item>
+        <item>Marketing</item>
+        <item>Other</item>
+    </string-array>
+    <string name="reg_course_prompt">Select Course</string>
+
+    <!--Grade Level-->
+    <string-array name="gradeLevel">
+        <item></item>
+        <item>9th Grade</item>
+        <item>10th Grade</item>
+        <item>11th Grade</item>
+        <item>12th Grade</item>
+        <item>Community College</item>
+        <item>College</item>
+    </string-array>
+    <string name="reg_grade_prompt">Select Grade</string>
+    <string name="continue_as_guest">Continue As Guest</string>
+    <!--<string name="or">OR</string>-->
+    <string name="or_1">Don\'t have an account?</string>
+    <string name="or">Create one</string>
 
 </resources>

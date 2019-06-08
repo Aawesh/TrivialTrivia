@@ -9,7 +9,7 @@
         android:screenOrientation="portrait"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".UI.ActivityWelcomePage"
+        <activity android:name=".UI.UserLogin"
                   android:screenOrientation="portrait"
             android:theme="@style/AppTheme.Launcher">
             <intent-filter>
@@ -24,22 +24,34 @@
             android:authorities="com.avinashdavid.trivialtrivia.data"
             android:enabled="true"
             android:exported="false"/>
-
         <activity
-            android:name=".UI.ActivityQuiz"
+            android:name=".UI.SelectDifficultyLevel"
             android:parentActivityName=".UI.ActivityWelcomePage"
             android:theme="@style/AppTheme.Launcher"
             android:noHistory="true"
             android:screenOrientation="portrait">
         </activity>
         <activity
+            android:name=".UI.ActivityQuiz"
+            android:parentActivityName=".UI.UserLogin"
+            android:theme="@style/AppTheme.Launcher"
+            android:noHistory="true"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
             android:name=".UI.ActivityStatistics"
-            android:parentActivityName=".UI.ActivityWelcomePage"
+            android:parentActivityName=".UI.UserLogin"
             android:screenOrientation="portrait">
         </activity>
         <activity
             android:name=".UI.ActivityPostQuiz"
-            android:parentActivityName=".UI.ActivityWelcomePage"
+            android:parentActivityName=".UI.UserLogin"
+            android:theme="@style/AppTheme.Launcher"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".UI.ActivitySocialize"
+            android:parentActivityName=".UI.UserLogin"
             android:theme="@style/AppTheme.Launcher"
             android:screenOrientation="portrait">
         </activity>
@@ -48,16 +60,30 @@
 
         <activity
             android:name=".UI.ActivityInstructions"
-            android:parentActivityName=".UI.ActivityWelcomePage"
+            android:parentActivityName=".UI.UserLogin"
             android:theme="@style/AppTheme.Launcher"
             android:screenOrientation="portrait">
         </activity>
+
         <activity android:name=".UI.ActivityAcknowledgments"
-                  android:parentActivityName=".UI.ActivityWelcomePage"
-                  android:theme="@style/AppTheme.Launcher"
-                  android:screenOrientation="portrait">
+            android:parentActivityName=".UI.ActivityAcknowledgments"
+            android:theme="@style/AppTheme.Launcher"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity android:name=".UI.UserRegistration"
+            android:parentActivityName=".UI.UserLogin"
+            android:theme="@style/AppTheme.Launcher"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity android:name=".UI.ActivityWelcomePage"
+            android:parentActivityName=".UI.UserLogin"
+            android:theme="@style/AppTheme.Launcher"
+            android:screenOrientation="portrait">
         </activity>
     </application>
     <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
 </manifest>

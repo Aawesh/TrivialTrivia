@@ -9,15 +9,25 @@ import android.support.v7.widget.LinearSnapHelper;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SnapHelper;
 import android.support.v7.widget.Toolbar;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.avinashdavid.trivialtrivia.R;
 import com.avinashdavid.trivialtrivia.UI.Adapters.CardAdapter;
+import com.avinashdavid.trivialtrivia.data.DataHolder;
 import com.avinashdavid.trivialtrivia.scoring.QuestionScorer;
 import com.avinashdavid.trivialtrivia.scoring.QuizScorer;
+import com.avinashdavid.trivialtrivia.services.SendDeviceDetails;
 
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
+
+import java.io.IOException;
 import java.util.ArrayList;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.json.JSONException;
 
 public class ActivityPostQuiz extends AppCompatActivity {
     private ArrayList<QuestionScorer> mQuestionScorers;
@@ -46,7 +56,10 @@ public class ActivityPostQuiz extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-
+        /*ImageView imageView = (ImageView)findViewById(R.id.imageview_Pie);
+        imageView.getLayoutParams().height = 300                                                                                                                                ;
+        imageView.getLayoutParams().width = 300;
+        ((ImageView)findViewById(R.id.imageview_Pie)).setImageDrawable(getRoundedDrawable("start.jpg"));*/
         mRecyclerView = (RecyclerView) findViewById(R.id.cards_listview);
 //        mRecyclerView.setDividerHeight(Float.valueOf(getResources().getDimension(R.dimen.activity_vertical_margin)).intValue());
         Intent intent = getIntent();
@@ -54,9 +67,23 @@ public class ActivityPostQuiz extends AppCompatActivity {
         mQuizNumber = intent.getIntExtra(KEY_QUIZ_NUMBER, 0);
         mQuizScorer = QuizScorer.getInstance(this, mQuizSize, mQuizNumber);
         mQuestionScorers = mQuizScorer.getQuestionScorers();
+        //String json = new Gson().toJson(mQuizScorer);
         try {
             TextView scoreView = (TextView) findViewById(R.id.scoreTextView);
-            scoreView.setText(Integer.toString(mQuizScorer.scoreQuiz(mQuestionScorers)));
+            String score = Integer.toString(mQuizScorer.scoreQuiz(mQuestionScorers));
+            scoreView.setText(score);
+
+            String json = "{ \"userid\": \"" + DataHolder.userId + "\", \"testscore\": \"" + score + "\", \"quizid\": \"101\" }";
+
+            //
+            try {
+
+                new SendDeviceDetails().execute("http://52.173.186.160:8083/quizresult", json);
+               // new SendDeviceDetails().makeRequest("http://52.173.186.160:8083/quizresult", json);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //
             scoreView.setTextSize(getResources().getDimension(R.dimen.score_textsize));
             ((TextView) findViewById(R.id.quizLengthTextView)).setText(Integer.toString(mQuestionScorers.size()));
         } catch (Exception e){
@@ -89,6 +116,18 @@ public class ActivityPostQuiz extends AppCompatActivity {
     protected void onPause() {
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
         super.onPause();
+    }
+
+    private RoundedBitmapDrawable getRoundedDrawable(String filename){
+        try {
+            RoundedBitmapDrawable dr = RoundedBitmapDrawableFactory.create(getResources(), getAssets().open(filename));
+            dr.setCornerRadius(500);
+            return dr;
+        }
+        catch (IOException e){
+//            Log.d("imageHandling", e.toString());
+        }
+        return null;
     }
 
 

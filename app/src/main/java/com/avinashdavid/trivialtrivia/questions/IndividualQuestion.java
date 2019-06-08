@@ -5,18 +5,19 @@ import android.os.Parcelable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 
 /**
  * Created by avinashdavid on 10/31/16.
  */
 
 public class IndividualQuestion implements Parcelable {
+    public String categoryText;
     public int category;
     public String question;
     public String[] choicesList;
     public int correctAnswer;
-    public int questionNumber;
+    public String rationale;
 
     public static final int CATEGORY_GENERAL = 0;
     public static final int CATEGORY_SCIENCE = 1;
@@ -25,63 +26,36 @@ public class IndividualQuestion implements Parcelable {
     public static final int CATEGORY_ENTERTAINMENT = 4;
     public static final int CATEGORY_SPORTS = 5;
 
-    public static final ArrayList<String> categoryList = new ArrayList<String>(Arrays.asList("general","science","world","history","entertainment","sports"));
-
-    public static ArrayList<String> getCategoryList() {
-        return categoryList;
-    }
-
-    //    private static void createCategoryList(){
-//        if (categoryList == null){
-//            categoryList =  new ArrayList<String>(5);
-//            categoryList.add(0,"general");
-//            categoryList.add(1,"science");
-//            categoryList.add(2,"world");
-//            categoryList.add(3,"science");
-//            categoryList.add(4,"sports");
-//        }
-//    }
+    public static final ArrayList<String> categoryList = new ArrayList<>(Arrays.asList(
+            "Academy of Finance", "Business Class", "Finance planing", "Personal Finance"));
 
 
-//    public IndividualQuestion(int category, String question, String[] choicesList, int correctAnswer) {
-//        this.category = category;
-//        this.question = question;
-//        this.choicesList = choicesList;
-//        this.correctAnswer = correctAnswer;
-//    }
-//
-//    public IndividualQuestion(String category, String question, String[] answersList, int correctAnswer) {
-//        this.category = categoryList.indexOf(category);
-//        this.question = question;
-//        this.choicesList = answersList;
-//        this.correctAnswer = correctAnswer;
-//    }
-
-    public IndividualQuestion(int questionNumber, String category, String question, String[] answersList, int correctAnswer) {
-        this.questionNumber = questionNumber;
+    public IndividualQuestion(String category, String question, String[] answersList, int correctAnswer, String rationale) {
+        this.categoryText = category;
         this.category = categoryList.indexOf(category);
         this.question = question;
         this.choicesList = answersList;
         this.correctAnswer = correctAnswer;
+        this.rationale = rationale;
     }
 
     public IndividualQuestion(Parcel parcel){
-        this.questionNumber = parcel.readInt();
         this.category = parcel.readInt();
         this.question = parcel.readString();
         String[] choicesList = new String[4];
         parcel.readStringArray(choicesList);
         this.choicesList = choicesList;
         this.correctAnswer = parcel.readInt();
+        this.rationale = parcel.readString();
     }
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeInt(questionNumber);
         parcel.writeInt(category);
         parcel.writeString(question);
         parcel.writeStringArray(choicesList);
         parcel.writeInt(correctAnswer);
+        parcel.writeString(rationale);
     }
 
     @Override

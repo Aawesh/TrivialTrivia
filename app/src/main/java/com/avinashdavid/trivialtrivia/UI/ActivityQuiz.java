@@ -2,18 +2,15 @@ package com.avinashdavid.trivialtrivia.UI;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.transition.Slide;
 import android.transition.TransitionInflater;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -24,12 +21,19 @@ import android.widget.TextView;
 import com.avinashdavid.trivialtrivia.R;
 import com.avinashdavid.trivialtrivia.data.QuizDBContract;
 import com.avinashdavid.trivialtrivia.questions.IndividualQuestion;
-import com.avinashdavid.trivialtrivia.questions.QuestionsHandling;
 import com.avinashdavid.trivialtrivia.scoring.QuestionScorer;
 import com.avinashdavid.trivialtrivia.scoring.QuizScorer;
 import com.avinashdavid.trivialtrivia.services.InsertRecordsService;
+import com.avinashdavid.trivialtrivia.web.data.Questions;
+import com.avinashdavid.trivialtrivia.web.services.LocalQuestionService;
+import com.avinashdavid.trivialtrivia.web.services.RemoteService;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ActivityQuiz extends AppCompatActivity {
     private int QUIZ_NUMBER;
@@ -42,8 +46,7 @@ public class ActivityQuiz extends AppCompatActivity {
     private CardView mCardView;
     private TextView mNumberTextView;
     private TextView mCategoryTextView;
-    private static ArrayList<IndividualQuestion> sIndividualQuestions;
-    private ArrayList<String> mCurrentDisplayQuestion;
+    private static List<IndividualQuestion> sIndividualQuestions;
     private int mQuestionNumber;
     private Button mNextQuestionButton;
     private Button mPreviousQuestionButton;
@@ -73,18 +76,18 @@ public class ActivityQuiz extends AppCompatActivity {
         currentVersionCode = android.os.Build.VERSION.SDK_INT;
         setContentView(R.layout.activity_quiz);
         setupWindowAnimations();
-        setSupportActionBar((Toolbar)findViewById(R.id.toolbar));
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
-        hasVibrator = ((Vibrator)getSystemService(VIBRATOR_SERVICE)).hasVibrator();
-        if (hasVibrator){
-            mVibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
+        hasVibrator = ((Vibrator) getSystemService(VIBRATOR_SERVICE)).hasVibrator();
+        if (hasVibrator) {
+            mVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         }
 
         maxTime = 20;
 
-        if (savedInstanceState!=null){
+        if (savedInstanceState != null) {
             mQuizSize = savedInstanceState.getInt(KEY_QUIZ_SIZE);
             mQuestionNumber = savedInstanceState.getInt(KEY_QUESTION_NUMBER);
             QUIZ_NUMBER = savedInstanceState.getInt(KEY_QUIZ_NUMBER);
@@ -92,7 +95,7 @@ public class ActivityQuiz extends AppCompatActivity {
         } else {
             mQuizSize = 10;
             Cursor c = getContentResolver().query(QuizDBContract.QuizEntry.CONTENT_URI, new String[]{QuizDBContract.QuizEntry._ID}, null, null, null);
-            if (c.moveToFirst()){
+            if (c.moveToFirst()) {
                 QUIZ_NUMBER = c.getCount() + 1;
             } else {
                 QUIZ_NUMBER = QuizScorer.sQuizNumber + 1;
@@ -102,34 +105,57 @@ public class ActivityQuiz extends AppCompatActivity {
             mCurrentSeconds = maxTime;
         }
 
-
+        // selectDifficultyLevel();
         sQuizScorer = QuizScorer.getInstance(this, mQuizSize, QUIZ_NUMBER);
-        sIndividualQuestions = QuestionsHandling.getInstance(this.getApplicationContext(), QUIZ_NUMBER).getRandomQuestionSet(mQuizSize, QUIZ_NUMBER);
-        mCurrentDisplayQuestion = QuestionsHandling.makeDisplayQuestionObject(sIndividualQuestions.get(mQuestionNumber));
+//        sIndividualQuestions = QuestionsHandling.getInstance(this.getApplicationContext(), QUIZ_NUMBER).getRandomQuestionSet(mQuizSize, QUIZ_NUMBER);
 
 
 //        mCardView = (CardView) findViewById(R.id.card_view);
 //        mListView = (ListView)rootview.findViewById(R.id.choices_listview);
 
+        RemoteService questionsService = new RemoteService();
+        questionsService.getWiseService().getQuestions().enqueue(new Callback<Questions>() {
+            @Override
+            public void onResponse(Call<Questions> call, Response<Questions> response) {
+                start(response.body().getQuestions());
+            }
 
-        mNumberTextView = (TextView)findViewById(R.id.questionNumber_textview);
-        mCategoryTextView = (TextView)findViewById(R.id.category_textview);
-        mSecondsTextview = (TextView)findViewById(R.id.seconds_display);
+            @Override
+            public void onFailure(Call<Questions> call, Throwable t) {
+                start(new LocalQuestionService(getBaseContext()).getQuestions(10));
+            }
+        });
+
+    }
+
+    protected void selectDifficultyLevel() {
+        Intent intent = new Intent(this, ActivityPostQuiz.class);
+        intent.putExtra(ActivityPostQuiz.KEY_QUIZ_SIZE, mQuizSize);
+        intent.putExtra(ActivityPostQuiz.KEY_QUIZ_NUMBER, QUIZ_NUMBER);
+        startActivity(intent);
+    }
+
+    private void start(List<IndividualQuestion> questions) {
+        sIndividualQuestions = questions;
+        mNumberTextView = (TextView) findViewById(R.id.questionNumber_textview);
+        mCategoryTextView = (TextView) findViewById(R.id.category_textview);
+        mSecondsTextview = (TextView) findViewById(R.id.seconds_display);
         mSecondsTextview.setText(Integer.toString(mCurrentSeconds));
-        mFrameLayout = (FrameLayout)findViewById(R.id.card_framelayout);
-        mProgressBar = (ProgressBar)findViewById(R.id.progressBar);
+        mFrameLayout = (FrameLayout) findViewById(R.id.card_framelayout);
+        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         mProgressBar.setMax(maxTime);
         mProgressBar.setProgress(mCurrentSeconds);
-        mCountDownTimer = new CountDownTimer((mCurrentSeconds+2)*1000,1000) {
+        mCountDownTimer = new CountDownTimer((mCurrentSeconds + 2) * 1000, 1000) {
             int mTicknumber = 0;
+
             @Override
             public void onTick(long l) {
                 mSecondsTextview.setText(Integer.toString(mCurrentSeconds));
                 mProgressBar.setProgress(mCurrentSeconds);
 //                Log.d("timer", "ontick" + Integer.toString(mTicknumber++) + ": " + Integer.toString(mCurrentSeconds));
-                if (mCurrentSeconds<=0){
+                if (mCurrentSeconds <= 0) {
                     mSecondsTextview.setTextColor(getResources().getColor(R.color.wrongAnswerRed));
-                    if (mCurrentSeconds<0){
+                    if (mCurrentSeconds < 0) {
                         mFrameLayout.setClickable(false);
                     }
                 }
@@ -141,9 +167,9 @@ public class ActivityQuiz extends AppCompatActivity {
                 mSecondsTextview.setTextColor(getResources().getColor(R.color.darker_gray));
                 mProgressBar.setProgress(0);
                 IndividualQuestion currentQuestion = sIndividualQuestions.get(mQuestionNumber);
-                sQuizScorer.addQuestionScorer(currentQuestion.questionNumber, currentQuestion.category, currentQuestion.correctAnswer, QuestionScorer.NO_ANSWER);
+                sQuizScorer.addQuestionScorer(currentQuestion, mQuestionNumber, QuestionScorer.NO_ANSWER);
                 goToNextQuestion();
-                mTicknumber=0;
+                mTicknumber = 0;
             }
         };
 
@@ -151,20 +177,6 @@ public class ActivityQuiz extends AppCompatActivity {
 //        mPreviousQuestionButton = (Button)findViewById(R.id.buttonPreviousQuestion);
 
         setAndUpdateChoiceTextViews(mQuestionNumber);
-
-
-//        mNextQuestionButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                goToNextQuestion();
-//            }
-//        });
-//        mPreviousQuestionButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                goToPreviousQuestion();
-//            }
-//        });
     }
 
     @Override
@@ -174,7 +186,7 @@ public class ActivityQuiz extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        if (mCountDownTimer!=null) {
+        if (mCountDownTimer != null) {
             mCountDownTimer.cancel();
         }
         super.onStop();
@@ -182,7 +194,7 @@ public class ActivityQuiz extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if (mCountDownTimer!=null){
+        if (mCountDownTimer != null) {
             mCountDownTimer.cancel();
         }
         mCountDownTimer = null;
@@ -199,29 +211,24 @@ public class ActivityQuiz extends AppCompatActivity {
     }
 
     @TargetApi(21)
-    private void setupWindowAnimations(){
-        Slide slide = (Slide)TransitionInflater.from(this).inflateTransition(R.transition.activity_slide);
+    private void setupWindowAnimations() {
+        Slide slide = (Slide) TransitionInflater.from(this).inflateTransition(R.transition.activity_slide);
         getWindow().setEnterTransition(slide);
     }
 
     //updates the mCurrentDisplayQuestion object and text of the respective textviews
-    private void setAndUpdateChoiceTextViews(int questionNumber){
-        mCurrentDisplayQuestion = QuestionsHandling.makeDisplayQuestionObject(sIndividualQuestions.get(questionNumber));
-//        mQuestionView.setText(mCurrentDisplayQuestion.get(QuestionsHandling.INDEX_QUESTION));
-//        mChoice1TextView.setText(mCurrentDisplayQuestion.get(QuestionsHandling.INDEX_CHOICE_1));
-//        mChoice2TextView.setText(mCurrentDisplayQuestion.get(QuestionsHandling.INDEX_CHOICE_2));
-//        mChoice3TextView.setText(mCurrentDisplayQuestion.get(QuestionsHandling.INDEX_CHOICE_3));
-//        mChoice4TextView.setText(mCurrentDisplayQuestion.get(QuestionsHandling.INDEX_CHOICE_4));
-        if (currentVersionCode>=13){
+    private void setAndUpdateChoiceTextViews(int questionNumber) {
+        if (currentVersionCode >= 13) {
             updateFragmentAnimated();
         } else {
             updateFragmentTraditional();
         }
-        mNumberTextView.setText(Integer.toString(mQuestionNumber+1));
-        mCategoryTextView.setText(mCurrentDisplayQuestion.get(QuestionsHandling.INDEX_CATEGORY));
+        mNumberTextView.setText(Integer.toString(mQuestionNumber + 1));
+        IndividualQuestion individualQuestion = sIndividualQuestions.get(questionNumber);
+        mCategoryTextView.setText(individualQuestion.categoryText);
 
-        if (mCountDownTimer==null){
-            mCountDownTimer = new CountDownTimer((mCurrentSeconds+2)*1000,1000) {
+        if (mCountDownTimer == null) {
+            mCountDownTimer = new CountDownTimer((mCurrentSeconds + 2) * 1000, 1000) {
                 @Override
                 public void onTick(long l) {
                     mProgressBar.setProgress(mCurrentSeconds);
@@ -233,7 +240,7 @@ public class ActivityQuiz extends AppCompatActivity {
                 public void onFinish() {
                     mProgressBar.setProgress(0);
                     IndividualQuestion currentQuestion = sIndividualQuestions.get(mQuestionNumber);
-                    sQuizScorer.addQuestionScorer(currentQuestion.questionNumber, currentQuestion.category, currentQuestion.correctAnswer, QuestionScorer.NO_ANSWER);
+                    sQuizScorer.addQuestionScorer(currentQuestion, mQuestionNumber, QuestionScorer.NO_ANSWER);
                     goToNextQuestion();
 //                    if (mQuestionNumber < mQuizSize) {
 //                        this.start();
@@ -250,11 +257,11 @@ public class ActivityQuiz extends AppCompatActivity {
     //updates question number by +=1
     private void goToNextQuestion() {
         doVibration(hasVibrator);
-        if (mQuestionNumber<mQuizSize-1) {
+        if (mQuestionNumber < mQuizSize - 1) {
             mQuestionNumber += 1;
             setAndUpdateChoiceTextViews(mQuestionNumber);
             mSecondsTextview.setTextColor(getResources().getColor(R.color.darker_gray));
-            mCurrentSeconds=maxTime;
+            mCurrentSeconds = maxTime;
             mCountDownTimer.cancel();
             mCountDownTimer.start();
         } else {
@@ -263,23 +270,23 @@ public class ActivityQuiz extends AppCompatActivity {
     }
 
     //updates question number by -=1
-    private void goToPreviousQuestion(){
-        if (mQuestionNumber>0) {
-            mQuestionNumber-=1;
+    private void goToPreviousQuestion() {
+        if (mQuestionNumber > 0) {
+            mQuestionNumber -= 1;
             setAndUpdateChoiceTextViews(mQuestionNumber);
         }
     }
 
-    private void updateFragmentTraditional(){
-        android.support.v4.app.Fragment fragmentQuestion = FragmentQuestion.getInstance(mCurrentDisplayQuestion);
+    private void updateFragmentTraditional() {
+        android.support.v4.app.Fragment fragmentQuestion = FragmentQuestion.getInstance(sIndividualQuestions.get(mQuestionNumber));
         getSupportFragmentManager().beginTransaction().replace(R.id.card_framelayout, fragmentQuestion).commit();
     }
 
     @TargetApi(13)
-    private void updateFragmentAnimated(){
-        android.app.Fragment fragmentQuestion = FragmentQuestionHoneycomb.getInstance(mCurrentDisplayQuestion);
+    private void updateFragmentAnimated() {
+        android.app.Fragment fragmentQuestion = FragmentQuestionHoneycomb.getInstance(sIndividualQuestions.get(mQuestionNumber));
         android.app.FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        if (mQuestionNumber>0) {
+        if (mQuestionNumber > 0) {
             fragmentTransaction
 
                     // Replace the default fragment animations with animator resources
@@ -306,9 +313,9 @@ public class ActivityQuiz extends AppCompatActivity {
                 .commit();
     }
 
-    public void addQuestionScorer(View v){
+    public void addQuestionScorer(View v) {
         int chosenAnswer = -1;
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.choice1:
                 chosenAnswer = 0;
                 break;
@@ -325,15 +332,15 @@ public class ActivityQuiz extends AppCompatActivity {
         IndividualQuestion currentQuestion = sIndividualQuestions.get(mQuestionNumber);
         int timeTaken = maxTime - mCurrentSeconds;
         try {
-            sQuizScorer.addQuestionScorer(currentQuestion.questionNumber, currentQuestion.category, timeTaken, currentQuestion.correctAnswer, chosenAnswer);
+            sQuizScorer.addQuestionScorer(currentQuestion, timeTaken, chosenAnswer);
 //            Log.d("quizTracker", Integer.toString(mQuestionNumber) + ": chosen answer is " + Integer.toString(chosenAnswer) + " correct answer is " +Integer.toString(currentQuestion.correctAnswer));
         } finally {
             goToNextQuestion();
         }
     }
 
-    public void endQuiz(){
-        if (sQuizScorer.getQuestionScorers().size()==mQuizSize) {
+    public void endQuiz() {
+        if (sQuizScorer.getQuestionScorers().size() == mQuizSize) {
             ArrayList<QuestionScorer> questionScorers = sQuizScorer.getQuestionScorers();
             if (questionScorers != null) {
                 mCountDownTimer.cancel();
@@ -357,10 +364,10 @@ public class ActivityQuiz extends AppCompatActivity {
         }
     }
 
-    public void doVibration(boolean hasVibrator){
-        if (hasVibrator){
-            if (mVibrator == null){
-                mVibrator = (Vibrator)getSystemService(VIBRATOR_SERVICE);
+    public void doVibration(boolean hasVibrator) {
+        if (hasVibrator) {
+            if (mVibrator == null) {
+                mVibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
             }
             mVibrator.vibrate(vibrationMillis);
         }
